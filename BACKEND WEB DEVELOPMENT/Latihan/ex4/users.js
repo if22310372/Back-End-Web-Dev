@@ -1,4 +1,4 @@
-users = [
+const user = [
     {
         id: 1,
         name: "John",
@@ -8,7 +8,9 @@ users = [
         name: "Smith",
     },
     {
-        id: 3, 
-        name: "Bob",
-    },
-];
+        id: 3,
+        name: "Bob"
+    }
+  ];
+  
+  module.exports = { user };

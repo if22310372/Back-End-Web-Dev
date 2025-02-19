@@ -1,68 +1,57 @@
-const http = require('http')
-// const {hello, greetings} = require('./helloWorld')
-const moment = require('moment')
-const express = require('express')
-const app = express()
-const morgan = require("morgan")
-const errorhandler = require("errorhandler")
-const users = require('./users')
+const http = require('http');
+const moment = require('moment');
+const users = require('./users');
+const express = require('express');
+const app = express();
+const morgan = require('morgan');
+const errorhandler = require('errorhandler');
 
+const log = (req, res, next) => {
+    console.log(moment().format('MMMM Do YYYY, h:mm:ss a') + " " + req.originalUrl + " " + req.ip);
+    next();
+};
 
-// const log = (req, res, next) => {
-//     console.log(
-//         moment().format('LL')
-//     )
-//     next();
-// }
+app.use(morgan("tiny"));
 
+app.use(log);
 
-// // app.use(log);
-// app.use(morgan("tiny"));
+app.use(errorhandler());
 
+app.get('/users', (req, res) => {
+    res.status(200).json({users});
+});
 
-app.get('/', (req, res) => res.send('This is the home page'))
-
-app.get('/about', (req, res) => res.status(200).json({
-        status : 'success',
-        message : 'response success',
-        Description : 'Excercise #02',
-        Date : moment().format('MMMM Do YYYY, h:mm:ss a')
-    }))
-
-app.get('/users', (req, res) => res.status(200).json(users))
-
-
-// app.get("/post/:name", (req, res) => {
-//     const name = users.find(req.params.name === users.name)
-//     if(name){
-//         res.send(name)
-//     } else{
-//         res.status(404).send({ message: "User not found" });
-//     }
-    
-// })
-
-app.get("/post/:name", (req, res) => {
-    const user = users.find(user => user.name === req.params.name); // Perbaikan callback find()
+app.get('/users/:name', (req, res) => {
+    const name = req.params.name.toLowerCase();
+    const user = users.user.find(u => u.name.toLowerCase() === name);
 
     if (user) {
-        res.send(user);
+        res.status(200).json(user);
     } else {
-        res.status(404).send({ message: "User not found" });
+        res.status(404).json({
+            status: "error",
+            message: "Data user tidak ditemukan",
+        });
     }
 });
 
+app.use((err, req, res, next) => {
+    res.status(500).json({
+        status: "error",
+        message: "Terjadi kesalahan pada server",
+    });
+});
 
 app.use((req, res, next) => {
     res.status(404).json({
         status: "error",
-        message: "resource tidak ditemukan"
-    })
-})
+        message: "Resources tidak ditemukan",
+    });
+});
 
+const hostname = "127.0.0.1";
+const port = 3000;
 
-
-
-const hostname = "127.0.0.1"
-const port = 3000
-app.listen(port, hostname, () => console.log(`Server running at http://${hostname}:${port}`))
+app.listen(port, hostname, () => {
+    console.log(`Server running at http://${hostname}:${port}`);
+});
