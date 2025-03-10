@@ -1,41 +1,46 @@
-const http = require('http');
-const moment = require('moment');
-const {users} = require('./users');
 const express = require('express');
 const app = express();
+const port = 3000;
+
+const bodyParser = require('body-parser')
+const routers = require('./routers')
+
 const morgan = require('morgan');
 const errorhandler = require('errorhandler');
-const routers = require('./routers')
+
 const path = require("path")
 const cors = require("cors")
+const fs = require("fs")
+const multer = require("multer")
 
 
-
-//middleware
-const log = (req, res, next) => {
-    console.log(moment().format('MMMM Do YYYY, h:mm:ss a') + " " + req.originalUrl + " " + req.ip);
-    next();
-};
-
+// MIDDLEWARE
+//Menangani Log dengan Middleware
+// const logMiddleware = (req, res, next) => {
+//     console.log(Date.now() + " " + req.ip + " " + req.originalUrl);
+//     next();
+// };
+// app.use(logMiddleware);
 
 app.use(express.static(path.join(__dirname, "public")));
 
-
 app.use(morgan("tiny"));
 
-app.use(log);
+// middleware bdoy parser x-www-form-url-encode
+app.use(bodyParser.urlencoded({extended : true}))
+app.use(bodyParser.json())
 
-app.use(errorhandler());
 
 app.use(express.urlencoded({ extended: true}))
 app.use(express.json()) //INI CARA KEDUA PAKE RAW JSON DI POSTMAN 
 
 app.use(cors({
     origin: "http://127.0.0.1:5500",
-    method: {"GET"};
-}))
-//penambahan object2 di cors, supaya tidak semua origin bisa akses
+    methods: ["GET"] 
+}));
 
+
+// deklarasi routing
 app.use(routers);
 
 app.use((err, req, res, next) => {
@@ -48,13 +53,10 @@ app.use((err, req, res, next) => {
 app.use((req, res, next) => {
     res.status(404).json({
         status: "error",
-        message: "Resources tidak ditemukan",
-    });
-});
+        message: "resource tidak ditemukan",
+    })
+})
 
-const hostname = "127.0.0.1";
-const port = 3000;
+app.use(errorhandler)
 
-app.listen(port, hostname, () => {
-    console.log(`Server running at http://${hostname}:${port}`);
-});
+app.listen(port, () => console.log(`Server running at http://localhost:${port}`))
